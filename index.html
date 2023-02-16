@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To Do List</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css"
+        integrity="sha384-SZXxX4whJ79/gErwcOYf+zWLeJdY/qpuqC4cAa9rOGUstPomtqpuNWT9wdPEn2fk" crossorigin="anonymous">
+
+    <style>
+        * {
+            margin: 0%;
+            padding: 0%;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgb(194, 194, 194);
+            height: 100vh;
+        }
+
+        .wrapper {
+            background-color: #fff;
+            width: 400px;
+            padding: 20px;
+            margin: 20px;
+        }
+
+        .wrapper .header {
+            font-size: 30px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background-color: #5ca8e0;
+            color: #fff;
+            text-align: center;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .input-field {
+            width: 100%;
+            display: flex;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+
+        .input-field input {
+            width: 100%;
+            height: 100%;
+            outline: none;
+            font-size: 16px;
+            padding: 0 10px;
+            border: 1px solid #000;
+
+        }
+
+        .input-field button {
+            outline: none;
+            width: 40px;
+            height: 100%;
+            background-color: #5ca8e0;
+            border: 1px solid #000;
+            color: #fff;
+            cursor: pointer;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .input-field button.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .toDoList {
+            max-height: 250px;
+            overflow-x: auto;
+            overflow-y: scroll;
+        }
+
+        .toDoList li {
+            list-style: none;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background-color: rgb(238, 238, 238);
+            margin-bottom: 10px;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .toDoList li span {
+            position: absolute;
+            right: -35px;
+            background-color: rgb(236, 53, 53);
+            color: white;
+            padding: 10px;
+            transition: all 0.3s ease-in;
+            cursor: pointer;
+        }
+
+        .toDoList li:hover span {
+            right: 0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer span {
+            color: #009700;
+        }
+
+        .footer button {
+            outline: none;
+            border: none;
+            font-size: 16px;
+            background-color: #5ca8e0;
+            color: #fff;
+            padding: 10px 20px;
+            cursor: pointer;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .footer button.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header">To Do List</div>
+        <div class="input-field">
+            <input type="text" placeholder="Add new to do">
+            <button><i class="fas fa-plus"></i></button>
+        </div>
+        <ul class="toDoList">
+            <!-- Here all list will appear from Local Storage -->
+        </ul>
+        <div class="footer">
+            <span>You have <span class="pendingNum"></span> remaining tasks</span>
+            <button>Clear All</button>
+        </div>
+    </div>
+
+    <script>
+
+        // Taking all the required elements
+        const inputBox = document.querySelector(".input-field input");
+        const addBtn = document.querySelector(".input-field button");
+        const toDoList = document.querySelector(".toDoList");
+        const deleteAll = document.querySelector(".footer button");
+
+        // When user press a key in input box
+        inputBox.onkeyup = () => {
+            let userData = inputBox.value;  // takes the input value
+            if (userData.trim() != 0) {  // trim the extra spaces
+                addBtn.classList.add('active'); // add active class
+            } else {
+                addBtn.classList.remove('active'); // remove active class
+            }
+        }
+
+        // Show all the tasks by calling the function
+        showTasks();
+
+        // Add new task in the list on clicking the addBtn
+        addBtn.onclick = () => {
+            let userData = inputBox.value;
+            let getLocalStorage = localStorage.getItem("New To Do List");  // getting values from the Local Storage
+            if (getLocalStorage == null) {
+                listArr = [];  //create an empty array if local storage is null
+            } else {
+                listArr = JSON.parse(getLocalStorage);  // convert JSON string to js object
+            }
+            listArr.push(userData); // add the new task in the array
+            localStorage.setItem("New To Do List", JSON.stringify(listArr));  // set the item in local storage
+            showTasks(); // show all the tasks
+            addBtn.classList.remove('active'); // inactive to addBtn
+        }
+
+        // Show all the task function definition
+        function showTasks() {
+            let getLocalStorage = localStorage.getItem("New To Do List");
+            if (getLocalStorage == null) {
+                listArr = [];
+            } else {
+                listArr = JSON.parse(getLocalStorage);
+            }
+
+            let newList = "";
+            // access all the lists from the listArr array using forEach loop
+            listArr.forEach((element, index) => {
+                newList += `<li>${index + 1}. ${element} <span onclick="deleteTasks(${index})";><i class="far fa-trash-alt"></i></li>`;
+            });
+
+            toDoList.innerHTML = newList; //add the newlist in ul.toDoList
+            inputBox.value = ""; // empty the input box
+
+            //update the pending remaining numbers
+            let pendingNum = document.querySelector(".pendingNum");
+            pendingNum.textContent = listArr.length;
+
+
+            if (listArr.length > 0) {
+                deleteAll.classList.add('active'); //add active cls if array length is > 0 
+            } else {
+                deleteAll.classList.remove('active'); // remove active cls if array length is <= 0
+            }
+        }
+
+        //Delete the particular tasks
+        function deleteTasks(index) {
+            let getLocalStorage = localStorage.getItem("New To Do List");
+            listArr = JSON.parse(getLocalStorage);
+
+            listArr.splice(index, 1);
+            localStorage.setItem("New To Do List", JSON.stringify(listArr));
+            showTasks();
+        }
+
+        // Delete all the tasks in one go
+        deleteAll.onclick = () => {
+            listArr = [];
+            localStorage.setItem("New To Do List", JSON.stringify(listArr));
+            showTasks();
+        }
+
+
+    </script>
+</body>
+
+</html>
